@@ -1,6 +1,7 @@
 import os
 import cv2
 import sys
+import numpy as np
 from rtmlib import Wholebody, draw_skeleton
 
 class RTMPoseProcessor:
@@ -107,9 +108,6 @@ class RTMPoseProcessor:
         else:
             scale_factor = 1.0
         
-        # Copy frame to draw on it
-        output_frame = frame.copy()
-        
         # Initialize results
         current_angle = None
         angle_point = None
@@ -133,25 +131,15 @@ class RTMPoseProcessor:
                 # If need to scale back to original size
                 if scale_factor != 1.0:
                     keypoints = keypoints / scale_factor
-                    # Also adjust output frame size
-                    output_frame = cv2.resize(output_frame, original_size)
                 
                 # Get corresponding angle and joint points based on exercise type
                 current_angle, angle_point = self.get_exercise_angle(keypoints, exercise_type)
-                
-                # Draw skeleton on image (if enabled)
-                if self.show_skeleton:
-                    output_frame = self.draw_rtmpose_skeleton(output_frame, keypoints, confidence_scores)
             
         except Exception as e:
             print(f"RTMPose processing failed: {e}")
-            # Return original frame when error occurs
-            pass
         
-        # BGR to RGB (PyQt needs RGB format)
-        output_frame = cv2.cvtColor(output_frame, cv2.COLOR_BGR2RGB)
-        
-        return output_frame, current_angle, keypoints
+        # Return None for processed frame since we don't need it
+        return None, current_angle, keypoints
     
     def get_exercise_angle(self, keypoints, exercise_type):
         """Get angle based on exercise type"""
@@ -199,94 +187,6 @@ class RTMPoseProcessor:
             print(f"Error calculating exercise angle: {e}")
             
         return current_angle, angle_point
-    
-    def draw_rtmpose_skeleton(self, img, keypoints, confidence_scores=None):
-        """Draw RTMPose skeleton on image"""
-        if keypoints is None or len(keypoints) == 0:
-            return img
-        
-        annotated_frame = img.copy()
-        
-        # Define connections (COCO 17 keypoint format)
-        connections = [
-            # Head and face
-            [0, 1], [0, 2], [1, 3], [2, 4],  # nose-eyes-ears
-            # Torso
-            [5, 6],   # left_shoulder-right_shoulder
-            [5, 11],  # left_shoulder-left_hip
-            [6, 12],  # right_shoulder-right_hip
-            [11, 12], # left_hip-right_hip
-            # Arms
-            [5, 7], [7, 9],    # left_shoulder-left_elbow-left_wrist
-            [6, 8], [8, 10],   # right_shoulder-right_elbow-right_wrist
-            # Legs
-            [11, 13], [13, 15], # left_hip-left_knee-left_ankle
-            [12, 14], [14, 16]  # right_hip-right_knee-right_ankle
-        ]
-        
-        # Define colors (BGR format)
-        colors = {
-            'head': (51, 153, 255),    # Blue
-            'torso': (255, 153, 51),   # Orange
-            'arms': (153, 255, 51),    # Green
-            'legs': (255, 51, 153)     # Pink
-        }
-        
-        # Draw connection lines
-        for connection in connections:
-            pt1_idx, pt2_idx = connection
-            if pt1_idx < len(keypoints) and pt2_idx < len(keypoints):
-                pt1 = keypoints[pt1_idx]
-                pt2 = keypoints[pt2_idx]
-                
-                # Skip invalid points
-                if (pt1[0] == 0 and pt1[1] == 0) or (pt2[0] == 0 and pt2[1] == 0):
-                    continue
-                
-                # Select color
-                if pt1_idx in [0, 1, 2, 3, 4]:  # Head
-                    color = colors['head']
-                elif pt1_idx in [5, 6, 11, 12]:  # Torso
-                    color = colors['torso']
-                elif pt1_idx in [7, 8, 9, 10]:  # Arms
-                    color = colors['arms']
-                else:  # Legs
-                    color = colors['legs']
-                
-                # Draw connection line
-                cv2.line(annotated_frame, 
-                        (int(pt1[0]), int(pt1[1])), 
-                        (int(pt2[0]), int(pt2[1])), 
-                        color, 3)
-        
-        # Draw keypoints
-        for i, point in enumerate(keypoints):
-            if point[0] == 0 and point[1] == 0:  # Skip invalid points
-                continue
-                
-            # Adjust transparency based on confidence
-            alpha = 1.0
-            if confidence_scores is not None and i < len(confidence_scores):
-                alpha = min(1.0, confidence_scores[i] / self.conf_threshold)
-            
-            # Select color
-            if i in [0, 1, 2, 3, 4]:  # Head
-                color = colors['head']
-            elif i in [5, 6, 11, 12]:  # Torso
-                color = colors['torso']
-            elif i in [7, 8, 9, 10]:  # Arms
-                color = colors['arms']
-            else:  # Legs
-                color = colors['legs']
-            
-            # Apply transparency
-            color = tuple(int(c * alpha) for c in color)
-            
-            # Draw keypoint
-            cv2.circle(annotated_frame, (int(point[0]), int(point[1])), 5, color, -1)
-            cv2.circle(annotated_frame, (int(point[0]), int(point[1])), 7, color, 2)
-        
-        return annotated_frame
     
     def set_skeleton_visibility(self, show):
         """Set skeleton display state"""

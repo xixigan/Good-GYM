@@ -2,7 +2,7 @@ class Translations:
     """Translation module, provides Chinese-English text support"""
     
     # Current language (default Chinese)
-    current_language = "zh"
+    current_language = "en"
     
     # Chinese-English translation dictionary
     translations = {
@@ -319,27 +319,27 @@ class Translations:
         },
         "today_tab": {
             "zh": "今日进度",
-            "en": "Today's Progress",
-            "es": "Progreso de hoy",
-            "hi": "आज की प्रगति"
+            "en": "Today",
+            "es": "Hoy",
+            "hi": "आज"
         },
         "week_tab": {
-            "zh": "本周进度",
-            "en": "Weekly Progress",
-            "es": "Progreso semanal",
-            "hi": "साप्ताहिक प्रगति"
+            "zh": "本周统计",
+            "en": "Week",
+            "es": "Semana",
+            "hi": "सप्ताह"
         },
         "month_tab": {
-            "zh": "本月进度",
-            "en": "Monthly Progress",
-            "es": "Progreso mensual",
-            "hi": "मासिक प्रगति"
+            "zh": "本月统计",
+            "en": "Month",
+            "es": "Mes",
+            "hi": "महीना"
         },
         "goals_tab": {
             "zh": "目标设置",
-            "en": "Goals Setting",
-            "es": "Configuración de objetivos",
-            "hi": "लक्ष्य सेट करना"
+            "en": "Goals",
+            "es": "Objetivos",
+            "hi": "लक्ष्य"
         },
         
         # Content for each tab
@@ -517,6 +517,7 @@ class Translations:
             "es": "Modo espejo",
             "hi": "दर्पण मोड"
         },
+        
     }
     
     @classmethod

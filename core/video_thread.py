@@ -8,11 +8,9 @@ class VideoThread(QThread):
     """Video stream processing thread to avoid UI freezing"""
     change_pixmap_signal = pyqtSignal(np.ndarray, float)  # Add FPS parameter
     
-    def __init__(self, camera_id=0, width=640, height=480, rotate=True):
+    def __init__(self, camera_id=0, rotate=True, display_width=1280, display_height=720, inference_width=640, inference_height=360):
         super().__init__()
         self.camera_id = camera_id
-        self.width = width
-        self.height = height
         self.rotate = rotate
         self._run_flag = True
         self.buffer_size = 1  # Buffer size, set to 1 to avoid delay
@@ -21,7 +19,12 @@ class VideoThread(QThread):
         self.fps = 30  # Default frame rate
         self.loop_video = False  # Control whether to loop video playback
         self.video_ended = False  # Mark if video has ended
-    
+        self.mirror = False  # Added for mirror mode
+        self.display_width = display_width
+        self.display_height = display_height
+        self.inference_width = inference_width
+        self.inference_height = inference_height
+
     def set_camera(self, camera_id):
         """Switch camera"""
         if self.isRunning():
@@ -37,10 +40,9 @@ class VideoThread(QThread):
         """Set whether to rotate video"""
         self.rotate = rotate
         
-    def set_resolution(self, width, height):
-        """Set resolution"""
-        self.width = width
-        self.height = height
+    def set_mirror(self, mirror):
+        """Set whether to mirror video"""
+        self.mirror = mirror
         
     def set_video_file(self, file_path, loop=False):
         """Set video file path
@@ -104,23 +106,26 @@ class VideoThread(QThread):
             if is_vertical:
                 print(f"Detected vertical video (aspect ratio: {aspect_ratio:.2f}, size: {original_width}x{original_height})")
                 self.rotate = False  # No rotation
-                # Set width to half of original height, maintain professional vertical display
-                self.width = max(360, original_width)  # Ensure minimum width
-                self.height = int(self.width * original_height / original_width)
+                # Set display resolution
+                self.display_width = max(720, original_width)
+                self.display_height = int(self.display_width * original_height / original_width)
+                # Set inference resolution
+                self.inference_width = max(360, original_width)
+                self.inference_height = int(self.inference_width * original_height / original_width)
             # Otherwise it's a horizontal video (16:9)
             else:
                 print(f"Detected horizontal video (aspect ratio: {aspect_ratio:.2f}, size: {original_width}x{original_height})")
                 self.rotate = False  # Also no rotation
-                # Adjust size to maintain horizontal display
-                self.height = 360  # Fixed height
-                self.width = int(self.height * aspect_ratio)  # Calculate width based on original aspect ratio
+                # Set display resolution
+                self.display_height = 720
+                self.display_width = int(self.display_height * aspect_ratio)
+                # Set inference resolution
+                self.inference_height = 480
+                self.inference_width = int(self.inference_height * aspect_ratio)
         except Exception as e:
             print(f"Video aspect ratio detection error: {str(e)}")
             # Use default values when error occurs
             self.rotate = False
-        except Exception as e:
-            print(f"Video aspect ratio detection error: {str(e)}")
-            # Keep original settings when error occurs
     
     def run(self):
         """Main thread loop"""
@@ -131,15 +136,15 @@ class VideoThread(QThread):
                 print(f"Error: Cannot open camera {self.camera_id}")
                 return
                 
-            # Set resolution and buffer (only applicable to camera)
-            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
+            # Set camera to high resolution for display
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.display_width)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.display_height)
             self.cap.set(cv2.CAP_PROP_BUFFERSIZE, self.buffer_size)
             
             # Camera mode defaults to rotation (default to portrait mode)
             self.rotate = True
             
-            print(f"Camera opened: ID={self.camera_id}, resolution={int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))}")
+            print(f"Camera opened: ID={self.camera_id}, display_resolution={int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))}")
         else:
             # Open video file
             if not os.path.exists(self.video_file):
@@ -173,13 +178,25 @@ class VideoThread(QThread):
         while self._run_flag:
             ret, frame = self.cap.read()
             if ret:
-                # Downsample to smaller size for processing
-                frame = cv2.resize(frame, (self.width, self.height))
+                # 创建两个版本的帧：高分辨率用于显示，低分辨率用于推理
+                display_frame = frame.copy()
+                inference_frame = cv2.resize(frame, (self.inference_width, self.inference_height))
                 
-                # If rotation is needed (portrait mode)
+                # 对显示帧应用旋转（如果需要）
                 if self.rotate:
-                    # Rotate 90 degrees to get 9:16 ratio (use INTER_NEAREST to speed up rotation)
-                    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+                    display_frame = cv2.rotate(display_frame, cv2.ROTATE_90_CLOCKWISE)
+                    # 同时旋转推理帧
+                    inference_frame = cv2.rotate(inference_frame, cv2.ROTATE_90_CLOCKWISE)
+                
+                # 对显示帧应用镜像（如果需要）
+                if self.mirror:
+                    display_frame = cv2.flip(display_frame, 1)
+                    # 同时镜像推理帧
+                    inference_frame = cv2.flip(inference_frame, 1)
+                
+                # 将推理帧存储在主窗口中，供模型使用
+                if hasattr(self.main_window, 'current_inference_frame'):
+                    self.main_window.current_inference_frame = inference_frame
                 
                 # Calculate FPS
                 frame_count += 1
@@ -190,8 +207,8 @@ class VideoThread(QThread):
                     frame_count = 0
                     start_time = time.time()
                 
-                # Send frame and FPS information
-                self.change_pixmap_signal.emit(frame, fps_display)
+                # Send display frame and FPS information
+                self.change_pixmap_signal.emit(display_frame, fps_display)
             else:
                 # When reading video file fails, if in video file mode
                 if not self.is_camera and self.video_file:

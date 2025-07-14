@@ -49,25 +49,25 @@ class VideoDisplay(QWidget):
             label_height = self.height()
             
             if label_width > 0 and label_height > 0:
-                # For vertical videos, use KeepAspectRatioByExpanding to fill dimensions
-                # For horizontal videos, use KeepAspectRatio to show complete content
-                aspect_mode = Qt.KeepAspectRatioByExpanding if self.is_portrait and frame_aspect_ratio < 1 else Qt.KeepAspectRatio
-                
+                # 使用高质量缩放，保持长宽比
                 qt_img = convert_to_qt_format.scaled(
                     label_width,
                     label_height,
-                    aspect_mode,
-                    Qt.SmoothTransformation  # Use smooth transformation for better quality
+                    Qt.KeepAspectRatio,  # 保持长宽比，避免变形
+                    Qt.SmoothTransformation  # 使用平滑变换获得更好质量
                 )
             else:
                 qt_img = convert_to_qt_format
             
-            # Display image
-            self.image_label.setPixmap(QPixmap.fromImage(qt_img))
+            # 创建高质量像素图
+            pixmap = QPixmap.fromImage(qt_img)
             
-            # Scale image label to fit container
-            self.image_label.setScaledContents(True)
-            self.image_label.adjustSize()
+            # 设置高质量渲染
+            self.image_label.setPixmap(pixmap)
+            
+            # 不使用setScaledContents，让Qt自动处理缩放
+            self.image_label.setScaledContents(False)
+            
         except Exception as e:
             print(f"Error updating image: {e}")
     
