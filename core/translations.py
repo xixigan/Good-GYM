@@ -293,6 +293,10 @@ class Translations:
             "zh": "AI健身助手 v1.0\n\n基于AI姿态识别的健身辅助系统\n\n支持多种健身动作的自动计数和姿态分析",
             "en": "AI Workout Assistant v1.0\n\nAI-based pose recognition fitness system\n\nSupports automatic counting and pose analysis for various exercises",
         },
+        "about_text": {
+            "zh": "AI健身助手-GoodGYM\n\n版本1.2\n\n基于PyQt5和RTMpose开发的健身运动计数器应用，支持多种运动姿态识别和自动计数。\n\n特点：\n\n·实时姿态检测和角度计算\n\n·健身统计~跟踪您的健身进度\n\n·实时帧显示和状态反馈\n\n·支持自定义多种运动类型\n\n·美观的用户界面和多语言支持\n\n作者：Spike Don\n\nGitHub: Good-GYM\nhttps://github.com/yo-WASSUP/Good-GYM\n\n小红书：想吃好果计\nhttps://www.xiaohongshu.com/user/profile/5fdf34b50000000001008057",
+            "en": "AI Workout Assistant - GoodGYM\n\nVersion 1.2\n\nA fitness exercise counter application developed based on PyQt5 and RTMPose, supporting multiple exercise pose recognition and automatic counting.\n\nFeatures:\n\n·Real-time pose detection and angle calculation\n\n·Fitness Statistics - Track your fitness progress\n\n·Real-time frame display and status feedback\n\n·Support for custom multiple exercise types\n\n·Beautiful user interface and multi-language support\n\nAuthor: Spike Don\n\nGitHub: Good-GYM\nhttps://github.com/yo-WASSUP/Good-GYM\n\nXiaohongshu: 想吃好果计\nhttps://www.xiaohongshu.com/user/profile/5fdf34b50000000001008057",
+        },
         
         # Video related
         "open_video": {
