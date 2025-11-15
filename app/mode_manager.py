@@ -2,7 +2,7 @@
 模式管理模块 - 负责不同模式之间的切换
 """
 
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from PyQt5.QtCore import QTimer
 from core.translations import Translations as T
 

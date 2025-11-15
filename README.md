@@ -18,8 +18,9 @@
 
 ## 🆕 Changelog
 
-- **2024-06-07**: Major update! Dropped YOLO models and all GPU support. Now uses only RTMPose for pose detection, and runs on CPU only. Simpler, more compatible, and easier to use.
-- **2024-06-12**：Optimize exercise_counters.py for counting accuracy, code structure optimization
+- **2025-06-07**: Major update! Dropped YOLO models and all GPU support. Now uses only RTMPose for pose detection, and runs on CPU only. Simpler, more compatible, and easier to use.
+- **2025-06-12**：Optimize exercise_counters.py for counting accuracy, code structure optimization
+- **2025-11-15**: Reverted asynchronous pose detection due to accuracy issues, restored synchronous pose detection. Fixed crash when switching from statistics mode back to detection mode.
 
 ## 🔮 Future Development
 
