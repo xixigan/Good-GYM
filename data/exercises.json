@@ -119,6 +119,18 @@
       },
       "is_leg_exercise": false,
       "angle_point": [5, 11, 12]
+    },
+    "pullup": {
+      "name_zh": "引体向上",
+      "name_en": "Pull-up",
+      "down_angle": 140,
+      "up_angle": 70,
+      "keypoints": {
+        "left": [5, 7, 9],
+        "right": [6, 8, 10]
+      },
+      "is_leg_exercise": false,
+      "angle_point": [6, 8, 10]
     }
   }
 }

@@ -206,7 +206,8 @@ class RTMPoseProcessor:
                 "leg_raise": self.exercise_counter.count_leg_raise,
                 "knee_raise": self.exercise_counter.count_knee_raise,
                 "knee_press": self.exercise_counter.count_knee_press,
-                "crunch": self.exercise_counter.count_crunch
+                "crunch": self.exercise_counter.count_crunch,
+                "pullup": self.exercise_counter.count_pullup
             }
             
             # Get counting method

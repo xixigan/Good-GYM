@@ -270,3 +270,7 @@ class ExerciseCounter:
     def count_crunch(self, keypoints):
         """Count crunch repetitions"""
         return self.count_exercise(keypoints, 'crunch')
+    
+    def count_pullup(self, keypoints):
+        """Count pullup repetitions"""
+        return self.count_exercise(keypoints, 'pullup')
